@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>PL Weight System</title>
+<style>
+body { font-family: Arial; max-width: 950px; margin:auto; padding:20px; }
+input, select, button { width:100%; padding:10px; margin:8px 0; }
+.box { background:#f4f4f4; padding:15px; margin-top:20px; }
+h3 { margin-top:20px; }
+small { color:gray; }
+</style>
+</head>
+<body>
+
+<h2>🏋️ PL WEIGHT SYSTEM (Elite)</h2>
+
+<input type="text" id="nome" placeholder="Nome atleta">
+<input type="number" id="peso" placeholder="Peso (kg)">
+
+<select id="obiettivo">
+  <option value="gain">Aumento peso</option>
+  <option value="maintain">Mantenimento</option>
+  <option value="cut">Dimagrimento / Cut</option>
+</select>
+
+<select id="giorno">
+  <option value="on">ON training</option>
+  <option value="off">OFF rest</option>
+</select>
+
+<select id="peak">
+  <option value="no">Normale</option>
+  <option value="yes">Peak week (solo cut)</option>
+</select>
+
+<button onclick="genera()">GENERA DIETA</button>
+
+<div class="box" id="out"></div>
+
+<script>
+
+// ================= DATABASE =================
+
+const protein = [
+  {n:"pollo",g:120},{n:"tacchino",g:120},{n:"manzo magro",g:100},
+  {n:"tonno",g:120},{n:"salmone",g:120},{n:"uova",g:100},
+  {n:"albumi",g:200},{n:"yogurt greco",g:170},
+  {n:"fiocchi di latte",g:150},{n:"tofu",g:150},
+  {n:"tempeh",g:120},{n:"whey",g:30}
+];
+
+const carbs = [
+  {n:"riso",g:80},{n:"pasta",g:80},{n:"patate",g:300},
+  {n:"pane",g:100},{n:"avena",g:70},{n:"cornflakes",g:60},
+  {n:"Magretti",g:50},{n:"Plasmon",g:30},{n:"gallette",g:6}
+];
+
+const fats = [
+  {n:"olio EVO",g:10},{n:"frutta secca",g:15},
+  {n:"burro arachidi",g:20},{n:"formaggio",g:30}
+];
+
+const snacks = [
+  "banana","mela","yogurt + miele",
+  "cracker","pane + marmellata",
+  "barretta cereali"
+];
+
+const days = ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"];
+
+// ================= LOGICA =================
+
+function pick(a){ return a[Math.floor(Math.random()*a.length)] }
+
+// MACRO BASE + OBIECTIVE
+function macro(peso,obj,peak){
+
+let kcal = peso*35;
+
+if(obj==="gain") kcal *= 1.10;
+if(obj==="cut") kcal *= 0.85;
+
+if(peak==="yes" && obj==="cut") kcal *= 0.80;
+
+let p = peso*(obj==="cut"?2.4:2.0);
+
+let c = peso*(
+  obj==="gain"?4.8:
+  obj==="maintain"?3.5:
+  2.3
+);
+
+let f = (kcal-(p*4+c*4))/9;
+
+return {kcal,p,c,f};
+}
+
+// CUT NOTE
+function cutNote(obj){
+return obj==="cut"
+? "<small>⚠ CUT: riduzione fibre + frutta/verdura (taglio peso)</small><br>"
+: "";
+}
+
+// PASTO
+function meal(){
+return `
+- ${pick(protein).n} ${pick(protein).g}g<br>
+- ${pick(carbs).n} ${pick(carbs).g}g<br>
+- ${pick(fats).n} ${pick(fats).g}g<br>
+`;
+}
+
+// SNACK
+function snackMeal(){
+return `- ${pick(snacks)}<br>`;
+}
+
+// DAY
+function day(obj){
+return `
+<h4>COLAZIONE</h4>${meal()}
+<h4>PRANZO</h4>${meal()}
+<h4>MERENDA</h4>${snackMeal()}
+<h4>CENA</h4>${meal()}
+`;
+}
+
+// SUPPLEMENTI
+function supp(){
+return `
+<h3>INTEGRAZIONE</h3>
+- Whey 30g post WO<br>
+- Creatina 5g/die<br>
+- Omega 3<br>
+- Magnesio<br>
+- Sale (performance ON)<br>
+`;
+}
+
+// ================= GENERA =================
+
+function genera(){
+
+let nome = document.getElementById("nome").value;
+let peso = parseFloat(document.getElementById("peso").value);
+let obj = document.getElementById("obiettivo").value;
+let giorno = document.getElementById("giorno").value;
+let peak = document.getElementById("peak").value;
+
+if(!
